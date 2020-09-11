@@ -4,6 +4,8 @@
 
     export let workout;
 
+    let originalWorkout;
+
     // do we still need separate vars?
     let name;
     let type;
@@ -23,8 +25,8 @@
     let currentSeconds = 0;
     let running = false;
     let workoutForm;
-    $: speechText = '';
 
+    $: speechText = '';
     $: totalDuration = 0;
     $: totalSeconds = 0;
     $: remainingSeconds = 0;
@@ -80,7 +82,6 @@
         localStorage.setItem('my-workouts', JSON.stringify(myworkouts));
     }
 
-
     const updateTotalTime = () => {
         let seconds = workout.reps.reduce((total, rep) => {
             return total + (rep.work + rep.rest)
@@ -97,18 +98,21 @@
             return total + (rep.work + rep.rest)
         }, 0);
         
+        
         interval = setInterval(()=>{
+
+            console.log(originalWorkout.reps[currentRep]);        
+            console.log(workout.reps[currentRep]); 
             if(currentRep < workout.reps.length) {
-                
+                console.log(workout.reps[currentRep].work)
                 if( workout.reps[currentRep].work ) {
                     currentSeconds = workout.reps[currentRep].work--;
-
                 } else if ( workout.reps[currentRep].rest ) {
                     currentSeconds = workout.reps[currentRep].rest--;
                 } else { 
                     currentRep++;
                 }
-                updateTotalTime()
+                updateTotalTime();
 
             } else { 
                 console.info('DONE!')
@@ -121,7 +125,9 @@
 
         let inputs = workoutForm.querySelectorAll('input, textarea');
         Array.from(inputs).map( input => { input.setAttribute('disabled', true)});
-        speechText = 'LETS GO!'
+        
+        speechText = Math.floor(remainingSeconds / 60) + ' minute and ' + ( remainingSeconds % 60 > 9 ? remainingSeconds % 60 : '' + remainingSeconds % 60 ) + ' seconds workout, let\'s go';
+
         
     }
 
@@ -132,12 +138,11 @@
         let inputs = workoutForm.querySelectorAll('input, textarea');
         Array.from(inputs).map( input => { input.removeAttribute('disabled')});
         speechText = 'pause';
-        window.speechSynthesis.cancel();
     }
 
     onMount(() => {
         workout.warmup ? workout.reps = [...workout.warmup, workout.reps] : null;
-        
+        originalWorkout = Object.assign({}, workout);
         updateTotalTime();
         
         
