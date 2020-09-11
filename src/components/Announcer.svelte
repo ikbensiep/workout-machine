@@ -31,6 +31,7 @@
 
     afterUpdate(() => {
         console.log('afterupdate')
+        window.speechSynthesis.cancel();
         sayText();
     });
 
