@@ -4,7 +4,7 @@
 
     export let workout;
 
-    let originalWorkout;
+    let originalWorkout = [];
 
     // do we still need separate vars?
     let name;
@@ -33,16 +33,13 @@
 
     const insertRep = () => {
         workout.reps.push( {'name': newRepName, 'work': newRepWork, 'rest': newRepRest});
-        
         workout = workout;
-            
         newRepNameInput.focus();
         updateTotalTime();
     }
 
     const deleteRep = (event) => {
         let index = parseInt(event.target.parentNode.dataset.rep);
-        // const currentReps = reps;
         let reps = workout.reps;
         if (index > -1) {
             reps.splice(index, 1);
@@ -56,10 +53,8 @@
     const saveWorkout = async () => {
         
         // one hot mess..
-        // do not 
 
-        let newWorkout = workout;
-        
+        let newWorkout = workout;        
 
         let data = await localStorage.getItem('my-workouts');
         let myworkouts = JSON.parse(data) || [];
@@ -98,26 +93,43 @@
             return total + (rep.work + rep.rest)
         }, 0);
         
+        speechText = `${workout.collection}, ${workout.name}. \n ${workout.reps[currentRep].name}, ${workout.reps[currentRep].work} seconds. Let\'s go!`;
         
         interval = setInterval(()=>{
 
-            console.log(originalWorkout.reps[currentRep]);        
-            console.log(workout.reps[currentRep]); 
-
             // this code 🥲
             if(currentRep < workout.reps.length) {
-                console.log(workout.reps[currentRep].work)
+                
                 // if remaining time for current reps is > 0
                 if( workout.reps[currentRep].work ) {
                     // take off one work second
                     currentSeconds = workout.reps[currentRep].work--;
+
+                    let countdown = workout.reps[currentRep].work;
+
+                    if (countdown && countdown <= 3) {
+                        speechText = countdown == 3 ? `And ${countdown}.` : `${countdown}.`;
+                    }
+
                 // if no more remaining work time in current rep but there is rest time
                 } else if ( workout.reps[currentRep].rest ) {
+                    let countdown = workout.reps[currentRep].rest;
+                    
+                    if(workout.reps[currentRep].rest  == originalWorkout[currentRep].rest) speechText = `Rest. ${countdown} seconds. ${workout.coach}.`;
+
+                    if (countdown == 10 && workout.reps[currentRep + 1]) speechText = `Next: ${workout.reps[currentRep + 1].name}`;
+                    
+                    if (countdown && countdown <= 3) {
+                        speechText = countdown == 3 ? `In ${countdown}.` : `${countdown}.`;
+                    }
+                    
                     // take off one rest second
                     currentSeconds = workout.reps[currentRep].rest--;
+
                 } else { 
                     // go to next set of reps
                     currentRep++;
+                    speechText = `${workout.reps[currentRep].name} ${workout.reps[currentRep].work} seconds. Go!`;
                 }
                 updateTotalTime();
 
@@ -126,15 +138,12 @@
                 console.warn('TODO: add to log in localstorage')
                 cancelWorkout();
             }
-
-
+            
+            
         }, 1000);
 
         let inputs = workoutForm.querySelectorAll('input, textarea');
         Array.from(inputs).map( input => { input.setAttribute('disabled', true)});
-        
-        speechText = Math.floor(remainingSeconds / 60) + ' minute and ' + ( remainingSeconds % 60 > 9 ? remainingSeconds % 60 : '' + remainingSeconds % 60 ) + ' seconds workout, let\'s go';
-
         
     }
 
@@ -154,10 +163,12 @@
 
     onMount(() => {
         workout.warmup ? workout.reps = [...workout.warmup, workout.reps] : null;
-        originalWorkout = Object.assign({}, workout);
+        
+        for(const rep of workout.reps) {
+            originalWorkout.push({...rep});
+        }
+
         updateTotalTime();
-        
-        
     })
 
     onDestroy(() => {
