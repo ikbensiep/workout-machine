@@ -7,7 +7,7 @@
 		console.log('mount')
 		if(!workout) {
 			console.log('no workout supplied, checking localStorage')
-			myworkouts = await localStorage.getItem('my-workouts');
+			myworkouts = localStorage.getItem('my-workouts');
 			myworkouts = JSON.parse(myworkouts) || [];
 			
 			let myworkout;

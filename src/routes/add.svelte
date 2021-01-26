@@ -11,8 +11,6 @@
     let newRepNameInput;
 
     const insertRep = () => {
-        
-        //reps.push(newRep);
         reps = [...reps, newRep];
         newRepNameInput.focus();
     }
