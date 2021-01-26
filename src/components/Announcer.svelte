@@ -8,10 +8,10 @@
     let voice;
     let voiceSelect;
     let pitch = 1;
-    let rate = 1;
+    let rate = .8;
 
     export const sayText = () => {
-        console.log('saytext')
+        console.log('saytext:', speechText);
         let utterThis = new SpeechSynthesisUtterance(speechText);
         
         utterThis.pitch = pitch;
@@ -23,28 +23,43 @@
     }
 
     onMount( async () => {
-        console.log('mount')
+        console.log('mount');
         synth = window.speechSynthesis;
-        voices = window.speechSynthesis.getVoices();
-        voice = voices[event.target.selectedIndex];
+        voices = await getVoices();
     });
 
     afterUpdate(() => {
-        console.log('afterupdate')
         window.speechSynthesis.cancel();
         sayText();
     });
 
+    const getVoices = () => {
+        return new Promise((resolve) => {
+            let voices = window.speechSynthesis.getVoices().filter(voice => voice.lang.includes(navigator.language));
+            if (voices.length) {
+                resolve(voices)
+                return
+            }
+            speechSynthesis.onvoiceschanged = () => {
+                voices = window.speechSynthesis.getVoices().filter(voice => voice.lang.includes(navigator.language));
+                resolve(voices)
+            }
+        })
+    }
+
+    
     const handleVoiceChange = (event) => {
         console.log('handleChange')
-        voices = window.speechSynthesis.getVoices();
         voice = voices[event.target.selectedIndex];
+        console.log(voices);
     }
+
+    window.speechSynthesis.onvoiceschanged = handleVoiceChange;
 
 </script>
 
 <select bind:this={voiceSelect} on:blur={ handleVoiceChange }>
-    <option data-name="Henk"></option>
+    <option data-name="Henk">Henk</option>
     {#each voices as voice}
     <option data-name={voice.name} data-lang={voice.lang}>{voice.name} ({voice.lang})</option>
     {/each}
