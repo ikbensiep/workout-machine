@@ -103,19 +103,26 @@
 
             console.log(originalWorkout.reps[currentRep]);        
             console.log(workout.reps[currentRep]); 
+
+            // this code 🥲
             if(currentRep < workout.reps.length) {
                 console.log(workout.reps[currentRep].work)
+                // if remaining time for current reps is > 0
                 if( workout.reps[currentRep].work ) {
+                    // take off one work second
                     currentSeconds = workout.reps[currentRep].work--;
+                // if no more remaining work time in current rep but there is rest time
                 } else if ( workout.reps[currentRep].rest ) {
+                    // take off one rest second
                     currentSeconds = workout.reps[currentRep].rest--;
                 } else { 
+                    // go to next set of reps
                     currentRep++;
                 }
                 updateTotalTime();
 
             } else { 
-                console.info('DONE!')
+                speechText = 'Nice! That\'s a gooood workout!';
                 console.warn('TODO: add to log in localstorage')
                 cancelWorkout();
             }
@@ -131,13 +138,18 @@
         
     }
 
+    const pauseWorkout = () => {
+        speechText = 'workout paused';
+        cancelWorkout();
+    }
+
     const cancelWorkout = () => {
         clearInterval(interval);
         interval = undefined;
         
         let inputs = workoutForm.querySelectorAll('input, textarea');
         Array.from(inputs).map( input => { input.removeAttribute('disabled')});
-        speechText = 'pause';
+        
     }
 
     onMount(() => {
@@ -273,7 +285,7 @@
     <fieldset class="reps  {interval ? 'playing': 'paused'}">
         <legend>Reps (total duration: {totalDuration ? totalDuration : `0:00`})</legend>
         <div>
-            <progress value={remainingSeconds} max={totalSeconds}></progress>
+            <progress value={remainingSeconds ? remainingSeconds : 0} max={totalSeconds}></progress>
         </div>
         <div class="rep">
             <span>activity</span>
@@ -317,7 +329,7 @@
     <fieldset>
         <div>
             <button type="button" on:click={ startWorkout } disabled={interval}>start</button>
-            <button type="button" on:click={ cancelWorkout } disabled={!interval}>pause</button>
+            <button type="button" on:click={ pauseWorkout } disabled={!interval}>pause</button>
             <button type="submit">save</button>
         </div>
     </fieldset>
