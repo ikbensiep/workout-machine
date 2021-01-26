@@ -22,15 +22,15 @@ const workouts = [
                 work: 45,
                 rest: 15
             },
-            {   name : "sit up",
+            {   name : "sit ups",
                 work: 45,
                 rest: 15
             },
-            {   name : "push up",
+            {   name : "push ups",
                 work: 45,
                 rest: 15
             },
-            {   name : "squat",
+            {   name : "squats",
                 work: 45,
                 rest: 15
             },
