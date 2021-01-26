@@ -8,24 +8,25 @@
     let voice;
     let voiceSelect;
     let pitch = 1;
-    let rate = .8;
+    let rate = 1.1;
 
+    let utterThis = new SpeechSynthesisUtterance();
+    
     export const sayText = () => {
         console.log('saytext:', speechText);
-        let utterThis = new SpeechSynthesisUtterance(speechText);
-        
-        utterThis.pitch = pitch;
-        utterThis.rate = rate;
-        utterThis.voice = voice;
-        
+        utterThis = new SpeechSynthesisUtterance(speechText)
         synth.speak(utterThis);
-
+        
     }
-
+    
     onMount( async () => {
         console.log('mount');
         synth = window.speechSynthesis;
         voices = await getVoices();
+        utterThis.pitch = pitch;
+        utterThis.rate = rate;
+        utterThis.voice = voice;
+        window.speechSynthesis.onvoiceschanged = handleVoiceChange;
     });
 
     afterUpdate(() => {
@@ -35,13 +36,23 @@
 
     const getVoices = () => {
         return new Promise((resolve) => {
-            let voices = window.speechSynthesis.getVoices().filter(voice => voice.lang.includes(navigator.language));
+            let voices = window.speechSynthesis.getVoices();
+
             if (voices.length) {
-                resolve(voices)
-                return
+
+                // it'll have to do for now, Firefox has a LOTTT of (generated voices)
+                // maybe filter using something like this: 
+                // filterLanguages = [...new Set(voices.map(item => item.lang.split('-')[0]))];
+                if (voices.length > 100) {
+                    voices = window.speechSynthesis.getVoices().filter(voice => voice.lang.includes(navigator.language));
+                }
+
+                resolve(voices);
+                return;
             }
+
             speechSynthesis.onvoiceschanged = () => {
-                voices = window.speechSynthesis.getVoices().filter(voice => voice.lang.includes(navigator.language));
+                voices = window.speechSynthesis.getVoices();
                 resolve(voices)
             }
         })
@@ -49,18 +60,16 @@
 
     
     const handleVoiceChange = (event) => {
-        console.log('handleChange')
+        
         voice = voices[event.target.selectedIndex];
-        console.log(voices);
+        console.log(voice);
     }
 
-    window.speechSynthesis.onvoiceschanged = handleVoiceChange;
 
 </script>
 
 <select bind:this={voiceSelect} on:blur={ handleVoiceChange }>
-    <option data-name="Henk">Henk</option>
     {#each voices as voice}
-    <option data-name={voice.name} data-lang={voice.lang}>{voice.name} ({voice.lang})</option>
+    <option data-name={voice.name} data-lang={voice.lang}>{voice.name} [{voice.lang}]</option>
     {/each}
 </select>
